@@ -1,0 +1,55 @@
+services:
+  vprodb:
+    build:
+      context: ./Docker-files/db
+      dockerfile: Docker-file  # if your Dockerfile has a custom name (optional)
+    image: vijayv5/vprofile-db:latest
+    container_name: vprodb
+    environment:
+      MYSQL_ROOT_PASSWORD: vprodbpass
+      MYSQL_DATABASE: accounts
+    volumes:
+      - vprodbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+  
+  vprocache01:
+    image: memcached
+    container_name: vprocache01
+    ports:
+      - "11211:11211"
+   
+  vpromq01:
+    image: 
+    container_name: vpromq01
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+ 
+  vproapp:
+    build:
+      context: ./Docker-files/app
+      dockerfile: Docker-file  # if your Dockerfile has a custom name (optional)
+    image: vijayv5/vprofile-app:latest
+    container_name: vproapp
+    volumes:
+      - vproappdata:/usr/local/tomcat/webapps
+    ports:
+      - "8080:8080"
+
+  vproweb:
+    build:
+      context: ./Docker-files/webapp
+      dockerfile: Docker-file  # if your Dockerfile has a custom name (optional)
+    image: vijayv5/vprofile-webapp:latest
+    container_name: vproweb
+    ports:
+      - "80:80"
+
+
+volumes:
+   vprodbdata: {}
+   vproappdata: {}
+  

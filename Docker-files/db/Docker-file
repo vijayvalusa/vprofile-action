@@ -1,0 +1,11 @@
+FROM mysql:8.0.33
+LABEL "AUTHOR"="DevOps"
+LABEL "PROJECT"="Vprofile"
+
+Env MYSQL_ROOT_PASSWORD="admin123"
+Env MYSQL_DATABASE="accounts"
+
+#Copy into executable path
+COPY db_backup.sql /docker-entrypoint-initdb.d/db_backup.sql
+
+EXPOSE 3306
