@@ -1,18 +1,14 @@
 # -------------------- Build Stage --------------------
 FROM maven:3.9.9-eclipse-temurin-21-jammy AS build
 
-RUN apt update && apt install git -y
+ARG GIT_USERNAME
+ARG GIT_TOKEN
 
-# Clone the project
-RUN git clone https://github.com/hkhcoder/vprofile-project.git
+RUN apt update && apt install -y git
 
-# Set working directory to the cloned repo
-WORKDIR /vprofile-project
+RUN git clone https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/vijayvalusa/vprofile.git
 
-#Change branch
-RUN git checkout containers
-
-# Build the WAR
+WORKDIR /vprofile
 RUN mvn clean install
 
 # -------------------- Runtime Stage --------------------
@@ -21,12 +17,8 @@ FROM tomcat:10-jdk21
 LABEL AUTHOR="DevOps"
 LABEL PROJECT="Vprofile"
 
-# Clean default webapps
 RUN rm -rf /usr/local/tomcat/webapps/*
-
-# Copy WAR file from the build stage
 COPY --from=build /vprofile/target/vprofile.war /usr/local/tomcat/webapps/
 
 EXPOSE 8080
-
 CMD ["catalina.sh", "run"]

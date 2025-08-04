@@ -20,7 +20,7 @@ services:
       - "11211:11211"
    
   vpromq01:
-    image: 
+    image: rabbitmq:3-management
     container_name: vpromq01
     environment:
       RABBITMQ_DEFAULT_USER: guest
@@ -32,6 +32,9 @@ services:
     build:
       context: ./Docker-files/app
       dockerfile: Docker-file  # if your Dockerfile has a custom name (optional)
+      args:
+        GIT_USERNAME: ${GIT_USER}
+        GIT_TOKEN: ${GIT_TOKEN}
     image: vijayv5/vprofile-app:latest
     container_name: vproapp
     volumes:
