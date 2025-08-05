@@ -3,6 +3,8 @@ FROM  nginx:1.27
 LABEL AUTHOR="DevOps"
 LABEL PROJECT="Vprofile"
 
+RUN rm -rf /etc/nginx/conf.d/*
+
 COPY nginvproapp.conf /etc/nginx/conf.d/vproapp.conf
 
 EXPOSE 80

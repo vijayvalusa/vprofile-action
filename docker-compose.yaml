@@ -33,7 +33,7 @@ services:
       context: ./Docker-files/app
       dockerfile: Docker-file  # if your Dockerfile has a custom name (optional)
       args:
-        GIT_USERNAME: ${GIT_USER}
+        GIT_USERNAME: ${GIT_USERNAME}
         GIT_TOKEN: ${GIT_TOKEN}
     image: vijayv5/vprofile-app:latest
     container_name: vproapp

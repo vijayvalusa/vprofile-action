@@ -1,5 +1,5 @@
 # -------------------- Build Stage --------------------
-FROM maven:3.9.9-eclipse-temurin-21-jammy AS build
+FROM maven:3.9.9-eclipse-temurin-21-jammy AS BUILD_IMAGE
 
 ARG GIT_USERNAME
 ARG GIT_TOKEN
@@ -18,7 +18,7 @@ LABEL AUTHOR="DevOps"
 LABEL PROJECT="Vprofile"
 
 RUN rm -rf /usr/local/tomcat/webapps/*
-COPY --from=build /vprofile/target/vprofile.war /usr/local/tomcat/webapps/
+COPY --from=BUILD_IMAGE vprofile/target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
 
 EXPOSE 8080
 CMD ["catalina.sh", "run"]
