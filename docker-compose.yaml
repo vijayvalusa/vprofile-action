@@ -3,7 +3,7 @@ services:
     build:
       context: ./Docker-files/db
       dockerfile: Docker-file  # if your Dockerfile has a custom name (optional)
-    image: vijayv5/vprofile-db:latest
+    image: vijayv5/vprofiledb:latest
     container_name: vprodb
     environment:
       MYSQL_ROOT_PASSWORD: vprodbpass
@@ -35,7 +35,7 @@ services:
       args:
         GIT_USERNAME: ${GIT_USERNAME}
         GIT_TOKEN: ${GIT_TOKEN}
-    image: vijayv5/vprofile-app:latest
+    image: vijayv5/vprofileapp:latest
     container_name: vproapp
     volumes:
       - vproappdata:/usr/local/tomcat/webapps
@@ -46,7 +46,7 @@ services:
     build:
       context: ./Docker-files/webapp
       dockerfile: Docker-file  # if your Dockerfile has a custom name (optional)
-    image: vijayv5/vprofile-webapp:latest
+    image: vijayv5/vprofilewebapp:latest
     container_name: vproweb
     ports:
       - "80:80"
