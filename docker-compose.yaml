@@ -46,7 +46,7 @@ services:
     build:
       context: ./Docker-files/webapp
       dockerfile: Docker-file  # if your Dockerfile has a custom name (optional)
-    image: vijayv5/vprofilewebapp:latest
+    image: vijayv5/vprofileweb:latest
     container_name: vproweb
     ports:
       - "80:80"
