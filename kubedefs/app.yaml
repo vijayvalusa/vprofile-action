@@ -16,7 +16,7 @@ spec:
       labels:
         app: vproapp
     spec:
-      initcontainers:
+      initContainers:
       - name: init-mydb
         image: busybox
         command: ['sh','-c','until nslookup vprodb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for mydb; sleep 2; done;']

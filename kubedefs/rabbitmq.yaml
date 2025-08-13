@@ -28,6 +28,6 @@ spec:
         - name: RABBITMQ_DEFAULT_PASS
           valueFrom:
             secretKeyRef:
-              name: mysecrets
+              name: app-secret
               key: rmq-pass
               
