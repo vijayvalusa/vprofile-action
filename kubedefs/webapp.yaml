@@ -1,0 +1,37 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vproweb
+  labels:
+    app: vproweb
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vproweb
+  template:
+    metadata:
+      labels:
+        app: vproweb
+    spec:
+      containers:
+      - name: vproweb
+        image: vijayv5/vprofileweb
+        ports:
+        - containerPort: 80
+        
+---
+apiVersion: v1
+kind: service
+metadata:
+  name: vproweb-service
+spec:
+  selector:
+    app: vproweb
+  ports:
+  - protocol: TCP
+    targetPort: 80
+    port: 80
+  type: ClusterIP 
+
