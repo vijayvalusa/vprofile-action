@@ -40,7 +40,7 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.organization=vprofile-actionsvv \
-            -Dsonar.projectKey=vproapp25 \
+            -Dsonar.projectKey=vprofile-vproapp25 \
             -Dsonar.sources=src/ \
             -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
             -Dsonar.junit.reportsPath=target/surefire-reports/ \
