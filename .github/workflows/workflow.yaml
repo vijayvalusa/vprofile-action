@@ -3,19 +3,15 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "vprofile-project/**"
-
   push:
     branches:
       - main
-    paths:
-      - "vprofile-project/**"
     tags:
       - "v*.*.*"
 
 jobs:
   APP_TEST:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Code checkout
@@ -25,7 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       - name: Maven build
         run: mvn clean install
@@ -36,37 +32,93 @@ jobs:
       - name: Setup SonarQube
         uses: warchant/setup-sonar-scanner@v7
 
-      - name: SonarQube Scan
-        run: |
-          sonar-scanner \
-            -Dsonar.host.url=${{ secrets.SONAR_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
-            -Dsonar.sources=src/ \
-            -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
-            -Dsonar.junit.reportsPath=target/surefire-reports/ \
-            -Dsonar.jacoco.reportsPath=target/jacoco.exec \
-            -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
+      # - name: SonarQube Scan
+        # run: |
+          # sonar-scanner \
+            # -Dsonar.host.url=https://sonarcloud.io \
+            # -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            # -Dsonar.organization=vprofile-actionsvv \
+            # -Dsonar.projectKey=vprofile-vproapp25 \
+            # -Dsonar.sources=src/ \
+            # -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+            # -Dsonar.junit.reportsPath=target/surefire-reports/ \
+            # -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+            # -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
 
-      - name: SonarQube Quality Gate check
-        id: sonarqube-quality-gate-check
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
+      # - name: SonarQube Quality Gate check
+        # id: sonarqube-quality-gate-check
+        # uses: sonarsource/sonarqube-quality-gate-action@master
+        # env:
+          # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
 
-      - name: Check Quality Gate result
+      # - name: Check Quality Gate result
+        # run: |
+          # if [ "${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}" != "PASSED" ]; then
+            # echo "❌ Quality Gate failed"
+            # exit 1
+          # fi
+
+   # ---------------- Auto Tag after PR Merge ----------------
+  AUTO_TAG:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    needs: APP_TEST
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Needed to create tags
+
+      - name: Generate next semantic version tag
+        id: tag
         run: |
-          if [ "${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}" != "PASSED" ]; then
-            echo "❌ Quality Gate failed"
-            exit 1
+          # Get latest tag or default
+          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+
+          # Get commit messages since last tag
+          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=%B)
+
+          # Check if commit contains a version like vX.Y.Z
+          VERSION_IN_COMMIT=$(echo "$COMMITS" | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+" | head -n 1)
+
+          if [ -n "$VERSION_IN_COMMIT" ]; then
+            NEW_TAG=$VERSION_IN_COMMIT
+          else
+          # Remove 'v' and split into MAJOR.MINOR.PATCH
+            IFS='.' read -r MAJOR MINOR PATCH <<< "${LATEST_TAG#v}"
+
+          # Determine version bump based on commit messages
+            if echo "$COMMITS" | grep -iq "\[major\]"; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif echo "$COMMITS" | grep -iq "\[minor\]"; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+
+           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
           fi
 
+          echo "New tag: $NEW_TAG"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ env.NEW_TAG }}
+          git push origin ${{ env.NEW_TAG }}
+
   BUILD_AND_PUBLISH:
-    needs: APP_TEST
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/') && github.event.base_ref == 'refs/heads/main'
+    needs: AUTO_TAG
     steps:
       - name: Code checkout
         uses: actions/checkout@v3

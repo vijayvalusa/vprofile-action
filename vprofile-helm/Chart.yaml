@@ -1,4 +1,3 @@
-
 apiVersion: v2
 name: vprofile
 description: A Helm chart for VProfile application stack
