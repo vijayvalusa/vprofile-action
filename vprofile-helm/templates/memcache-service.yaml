@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.memcache.serviceName }}
+spec:
+  selector:
+    app: {{ .Release.Name }}-{{ .Values.memcache.name }}
+  ports:
+  - protocol: TCP
+    targetPort: {{ .Values.memcache.name }}-port
+    port: {{ .Values.memcache.port }}
+  type: ClusterIP

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.memcache.name }}
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.memcache.name }}
+spec:
+  replicas: {{ .Values.memcache.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.memcache.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.memcache.name }}
+    spec:
+      containers:
+      - name: {{ .Values.memcache.name }}
+        image: {{ .Values.memcache.image }}
+        ports:
+        - name: {{ .Values.memcache.name }}-port
+          containerPort: {{ .Values.memcache.port }}

@@ -1,0 +1,25 @@
+# Ignore Git stuff
+.git
+.gitignore
+
+# Maven build output
+target/
+
+# Logs
+*.log
+
+# IDE/project files
+*.iml
+.idea/
+.vscode/
+*.classpath
+*.project
+*.settings/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Docker related
+Dockerfile
+Docker-files/

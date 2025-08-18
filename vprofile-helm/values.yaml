@@ -1,0 +1,40 @@
+app:
+  name: vproapp
+  image: vijayv5/vprofileapp
+  replicas: 2
+  port: 8080
+
+database:
+  name: vprodb
+  image: vijayv5/vprofiledb
+  replicas: 1
+  port: 3306
+  storage: 3Gi
+  storageClass: default
+
+memcache:
+  name: vpromc
+  image: memcached
+  replicas: 2
+  port: 11211
+  serviceName: vprocache01
+
+rabbitmq:
+  name: vprormq
+  image: rabbitmq:3-management
+  replicas: 2
+  port: 5672
+  serviceName: vpromq01
+  user: guest
+
+secrets:
+  dbPass: dnByb2RicGFzcw==
+  rmqPass: Z3Vlc3Q=
+
+ingress:
+  enabled: true
+  host: vprofile.demo-vijay.shop
+  className: nginx
+
+registry:
+  secret: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2aWpheXY1IiwicGFzc3dvcmQiOiJkY2tyX3BhdF8yal9vVDZTSG5IcmVuQVNkcFo5OFNrX2xoTm8iLCJlbWFpbCI6InZpamF5LnZhbHVzYWNzZTU4MUBnbWFpbC5jb20iLCJhdXRoIjoiZG1scVlYbDJOVHBrWTJ0eVgzQmhkRjh5YWw5dlZEWlRTRzVJY21WdVFWTmtjRlo5T0ZOclgyeG9UbTg9In19fQ==

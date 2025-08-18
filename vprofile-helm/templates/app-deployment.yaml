@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.app.name }}
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.app.name }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.app.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.app.name }}
+    spec:
+      initContainers:
+      - name: init-mydb
+        image: busybox
+        command: ['sh','-c','until nslookup {{ .Release.Name }}-{{ .Values.database.name }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for mydb; sleep 2; done;']
+      - name: init-memcache
+        image: busybox
+        command: ['sh','-c','until nslookup {{ .Release.Name }}-{{ .Values.memcache.serviceName }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for memcache; sleep 2; done;']
+      - name: init-rmq
+        image: busybox
+        command: ['sh','-c','until nslookup {{ .Release.Name }}-{{ .Values.rabbitmq.serviceName }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for rmq; sleep 2; done;']
+      containers:
+      - name: {{ .Values.app.name }}
+        image: {{ .Values.app.image }}
+        ports:
+        - name: {{ .Values.app.name }}-port
+          containerPort: {{ .Values.app.port }}

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.database.name }}
+  labels:
+    app: {{ .Release.Name }}-{{ .Values.database.name }}
+spec:
+  replicas: {{ .Values.database.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.database.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.database.name }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Release.Name }}-regcred
+      initContainers:
+      - name: cleanup
+        image: busybox:1.36
+        command: ["sh", "-c", "rm -rf /var/lib/mysql/*"]
+        volumeMounts:
+        - name: vpro-db-data
+          mountPath: /var/lib/mysql
+      containers:
+      - name: {{ .Values.database.name }}
+        image: {{ .Values.database.image }}
+        ports:
+        - name: {{ .Values.database.name }}-port
+          containerPort: {{ .Values.database.port }}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-app-secret
+              key: db-pass
+              optional: false
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: vpro-db-data
+      volumes:
+      - name: vpro-db-data
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-db-pvc-claim

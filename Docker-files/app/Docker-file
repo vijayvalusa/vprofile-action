@@ -1,15 +1,17 @@
 # -------------------- Build Stage --------------------
 FROM maven:3.9.9-eclipse-temurin-21-jammy AS BUILD_IMAGE
 
-ARG GIT_USERNAME
-ARG GIT_TOKEN
-
-RUN apt update && apt install -y git
-
-RUN git clone https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/vijayvalusa/vprofile.git
-
 WORKDIR /vprofile
-RUN mvn clean install
+
+# copy only pom first
+COPY pom.xml .
+
+# pre-download dependencies
+RUN mvn dependency:go-offline -B
+
+COPY src .
+
+RUN mvn clean install -DskipTests
 
 # -------------------- Runtime Stage --------------------
 FROM tomcat:10-jdk21

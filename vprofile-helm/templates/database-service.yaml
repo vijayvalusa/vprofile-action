@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.database.name }}
+spec:
+  selector:
+    app: {{ .Release.Name }}-{{ .Values.database.name }}
+  ports:
+    - protocol: TCP
+      targetPort: {{ .Values.database.name }}-port
+      port: {{ .Values.database.port }}
+  type: ClusterIP
