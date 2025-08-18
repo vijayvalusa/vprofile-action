@@ -4,13 +4,13 @@ on:
     branches:
       - main
     paths:
-      - "vprofile-project/**"
+      - "vprofile-action/**"
 
   push:
     branches:
       - main
     paths:
-      - "vprofile-project/**"
+      - "vprofile-action/**"
     tags:
       - "v*.*.*"
 
