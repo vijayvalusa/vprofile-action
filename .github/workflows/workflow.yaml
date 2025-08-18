@@ -3,6 +3,8 @@ on:
   pull_request:
     branches:
       - main
+    types:
+      - closed
   push:
     tags:
       - "v*.*.*"
@@ -59,7 +61,7 @@ jobs:
 
    # ---------------- Auto Tag after PR Merge ----------------
   AUTO_TAG:
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     needs: APP_TEST
     steps:
