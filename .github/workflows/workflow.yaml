@@ -11,6 +11,7 @@ on:
     tags:
       - "v*.*.*"
 
+
 jobs:
   APP_TEST:
     runs-on: ubuntu-latest
