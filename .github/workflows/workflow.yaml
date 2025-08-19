@@ -78,6 +78,6 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: .
-        file: Docker-files/app/Dockerfile
+        file: Docker-files/app/Docker-file
         push: true
         tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vproapp:${{ github.run_number }}
