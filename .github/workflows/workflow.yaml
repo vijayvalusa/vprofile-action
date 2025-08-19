@@ -7,28 +7,28 @@ on:
     branches:
       - stage
       - main
-    
-  jobs:
-    APP_TEST:
-      runs-on: ubuntu-latest
-      steps:
-      - name: Code checkout
-        uses: actions/checkout@v3
 
-      - name: Java setup
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+jobs:
+  APP_TEST:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Code checkout
+      uses: actions/checkout@v3
 
-      - name: Maven build
-        run: mvn clean install
+    - name: Java setup
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
-      - name: Maven checkstyle
-        run: mvn checkstyle:checkstyle
+    - name: Maven build
+      run: mvn clean install
 
-      - name: Setup SonarQube
-        uses: warchant/setup-sonar-scanner@v7
+    - name: Maven checkstyle
+      run: mvn checkstyle:checkstyle
+
+    - name: Setup SonarQube
+      uses: warchant/setup-sonar-scanner@v7
 
       # - name: SonarQube Scan
         # run: |
@@ -57,11 +57,11 @@ on:
             # exit 1
           # fi
     
-    BUILD_AND_PUBLISH:
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      needs: APP_TEST
-      runs-on: ubuntu-latest
-      steps:
+  BUILD_AND_PUBLISH:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: APP_TEST
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout tagged commit
         uses: actions/checkout@v3
 
