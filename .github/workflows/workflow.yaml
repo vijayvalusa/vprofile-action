@@ -3,36 +3,32 @@ on:
   pull_request:
     branches:
       - main
-    types:
-      - closed
   push:
     branches:
       - stage
-    tags:
-      - "v*.*.*"
+      - main
 
 jobs:
   APP_TEST:
-    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Code checkout
-        uses: actions/checkout@v3
+    - name: Code checkout
+      uses: actions/checkout@v3
 
-      - name: Java setup
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+    - name: Java setup
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
-      - name: Maven build
-        run: mvn clean install
+    - name: Maven build
+      run: mvn clean install
 
-      - name: Maven checkstyle
-        run: mvn checkstyle:checkstyle
+    - name: Maven checkstyle
+      run: mvn checkstyle:checkstyle
 
-      - name: Setup SonarQube
-        uses: warchant/setup-sonar-scanner@v7
+    - name: Setup SonarQube
+      uses: warchant/setup-sonar-scanner@v7
 
       # - name: SonarQube Scan
         # run: |
@@ -60,103 +56,25 @@ jobs:
             # echo "❌ Quality Gate failed"
             # exit 1
           # fi
-
-   # ---------------- Auto Tag after PR Merge ----------------
-  AUTO_TAG:
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Needed to create tags
-          ref: main  
-          token: ${{ secrets.GH_PAT }}
-
-      - name: Debug GitHub context
-        run: |
-          echo "Event name: $GITHUB_EVENT_NAME"
-          echo "GitHub ref: $GITHUB_REF"
-          echo "PR merged? ${{ github.event.pull_request.merged }}"
-          echo "PR base branch: ${{ github.event.pull_request.base.ref }}"
-          echo "PR head branch: ${{ github.event.pull_request.head.ref }}"
-
-
-      - name: Generate next semantic version tag
-        id: tag
-        run: |
-          # Get latest tag or default
-          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
-          echo "Latest tag: $LATEST_TAG"
-
-          # Get commit messages since last tag
-          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=%B)
-
-          # Check if commit contains a version like vX.Y.Z
-          VERSION_IN_COMMIT=$(echo "$COMMITS" | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+" | head -n 1)
-
-          if [ -n "$VERSION_IN_COMMIT" ]; then
-            NEW_TAG=$VERSION_IN_COMMIT
-          else
-          # Remove 'v' and split into MAJOR.MINOR.PATCH
-            IFS='.' read -r MAJOR MINOR PATCH <<< "${LATEST_TAG#v}"
-
-          # Determine version bump based on commit messages
-            if echo "$COMMITS" | grep -iq "\[major\]"; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-            elif echo "$COMMITS" | grep -iq "\[minor\]"; then
-              MINOR=$((MINOR + 1))
-              PATCH=0
-            else
-              PATCH=$((PATCH + 1))
-            fi
-
-           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
-          fi
-
-          echo "New tag: $NEW_TAG"
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-
-
-      - name: Create and push tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ env.NEW_TAG }}
-          git push origin ${{ env.NEW_TAG }}
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }} ${{ env.NEW_TAG }}
-
+    
   BUILD_AND_PUBLISH:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: AUTO_TAG
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: APP_TEST
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tagged commit
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.ref }}
-          fetch-depth: 0
 
-      - name: Extract version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Check if tag commit is on main
-        id: check_main
-        run: |
-          git fetch origin main
-          BRANCH=$(git branch -r --contains $GITHUB_SHA | grep 'origin/main' || echo "")
-          if [ -z "$BRANCH" ]; then
-            echo "NOT_ON_MAIN=true" >> $GITHUB_ENV
-          else
-            echo "NOT_ON_MAIN=false" >> $GITHUB_ENV
+      - name: Login to docker hub
+        uses: actions-hub/docker/login@master
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push Docker image
-        if: env.NOT_ON_MAIN == 'false'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: Docker-files/app/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vproapp:${{ env.VERSION }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vproapp:${{ github.run_number }}
