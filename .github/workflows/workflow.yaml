@@ -11,7 +11,7 @@ on:
   jobs:
     APP_TEST:
       runs-on: ubuntu-latest
-    steps:
+      steps:
       - name: Code checkout
         uses: actions/checkout@v3
 
@@ -58,10 +58,10 @@ on:
           # fi
     
     BUILD_AND_PUBLISH:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: APP_TEST
-    runs-on: ubuntu-latest
-    steps:
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      needs: APP_TEST
+      runs-on: ubuntu-latest
+      steps:
       - name: Checkout tagged commit
         uses: actions/checkout@v3
 
