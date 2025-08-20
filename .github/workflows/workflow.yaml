@@ -112,3 +112,4 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/vproapp:${{ github.event.inputs.version }}
             ${{ secrets.DOCKER_HUB_USERNAME }}/vproapp:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/vproapp:${{ github.sha }}
